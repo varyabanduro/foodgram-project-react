@@ -159,7 +159,7 @@ class IngredientsRecipes(models.Model):
             MinValueValidator(0),
         ),
         verbose_name='Количество',
-        )
+    )
 
     class Meta:
         verbose_name = 'Ингридиетны'

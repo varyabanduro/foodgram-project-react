@@ -1,14 +1,14 @@
 from django.contrib import admin
 from django.utils.safestring import mark_safe
-from django_admin_listfilter_dropdown.filters import DropdownFilter, RelatedDropdownFilter
+from django_admin_listfilter_dropdown import filters
 from recipes.models import (
-    Tags,
     Subscriptions,
     Ingredients,
     Favorites,
     Recipes,
+    Tags,
     Cart
-    )
+)
 
 
 class TagsAdmin(admin.ModelAdmin):
@@ -28,8 +28,8 @@ class IngredientsAdmin(admin.ModelAdmin):
     list_display = ('name', 'measurement_unit')
     search_fields = ('name',)
     list_filter = (
-        ('name', DropdownFilter),
-        ('measurement_unit', DropdownFilter),
+        ('name', filters.DropdownFilter),
+        ('measurement_unit', filters.DropdownFilter),
     )
     list_per_page = 20
     ordering = ('name',)
@@ -63,9 +63,9 @@ class RecipesAdmin(admin.ModelAdmin):
     list_display_links = ('name', 'author', 'get_html_photo')
     search_fields = ('name',)
     list_filter = (
-        ('name', DropdownFilter),
-        ('author', RelatedDropdownFilter),
-        ('tags', RelatedDropdownFilter),
+        ('name', filters.DropdownFilter),
+        ('author', filters.RelatedDropdownFilter),
+        ('tags', filters.RelatedDropdownFilter),
     )
     inlines = [
         TagsInline,

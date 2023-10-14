@@ -48,10 +48,10 @@ class RecipesViewSet(viewsets.ModelViewSet):
     def download_shopping_cart(self, request):
         data = IngredientsRecipes.objects.filter(
             recipes__recipes_cart__user=request.user
-            ).values(
-                'ingrredient__name',
-                'ingrredient__measurement_unit'
-            ).annotate(amount=Sum('amount',))
+        ).values(
+            'ingrredient__name',
+            'ingrredient__measurement_unit'
+        ).annotate(amount=Sum('amount',))
         pdf = cart_list(data)
         return HttpResponse(
             bytes(pdf.output()),
