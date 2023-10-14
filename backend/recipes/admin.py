@@ -49,7 +49,7 @@ class TagsInline(admin.TabularInline):
 
 
 class IngredientsInline(admin.TabularInline):
-    model = Recipes.ingrredients.through
+    model = Recipes.ingredients.through
     extra = 1
     can_delete = False
 

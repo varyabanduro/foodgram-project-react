@@ -3,7 +3,7 @@ from rest_framework.decorators import action
 from django_filters.rest_framework import DjangoFilterBackend
 from .pagination import CustomPaginations
 from .filters import RecipesFilter, IngridientFilter
-from .mixins import ModelMixinSet, TagsIngridientMixin
+from .mixins import ModelMixinSet, TagsIngredientMixin
 from .serializers import (IngredientsSerializer, TagsSerializer,
                           SubscribeSerializer, RecipesListSerializer,
                           RecipesWritewSerializer, FavoritesSerializer,
@@ -17,14 +17,14 @@ from .utils import cart_list
 from django.http import HttpResponse
 
 
-class IngridientViewSet(TagsIngridientMixin):
+class IngredientViewSet(TagsIngredientMixin):
     queryset = Ingredients.objects.all()
     serializer_class = IngredientsSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_class = IngridientFilter
 
 
-class TagsViewSet(TagsIngridientMixin):
+class TagsViewSet(TagsIngredientMixin):
     queryset = Tags.objects.all()
     serializer_class = TagsSerializer
 
@@ -49,8 +49,8 @@ class RecipesViewSet(viewsets.ModelViewSet):
         data = IngredientsRecipes.objects.filter(
             recipes__recipes_cart__user=request.user
         ).values(
-            'ingrredient__name',
-            'ingrredient__measurement_unit'
+            'ingredient__name',
+            'ingredient__measurement_unit'
         ).annotate(amount=Sum('amount',))
         pdf = cart_list(data)
         return HttpResponse(

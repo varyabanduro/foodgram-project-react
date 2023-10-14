@@ -74,10 +74,10 @@ class SubscribeSerializer(serializers.ModelSerializer):
 
 
 class IngredientsRecipesSerializer(serializers.ModelSerializer):
-    id = serializers.ReadOnlyField(source="ingrredient.id")
-    name = serializers.ReadOnlyField(source="ingrredient.name")
+    id = serializers.ReadOnlyField(source="ingredient.id")
+    name = serializers.ReadOnlyField(source="ingredient.name")
     measurement_unit = serializers.ReadOnlyField(
-        source="ingrredient.measurement_unit"
+        source="ingredient.measurement_unit"
     )
 
     class Meta:
@@ -90,14 +90,14 @@ class RecipesListSerializer(serializers.ModelSerializer):
     author = CustomUserSerializer()
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
-    ingrredients = IngredientsRecipesSerializer(
-        many=True, source='ingrredient_recipes'
+    ingredients = IngredientsRecipesSerializer(
+        many=True, source='ingredient_recipes'
     )
 
     class Meta:
         model = Recipes
         fields = (
-            'id', 'tags', 'author', 'ingrredients',
+            'id', 'tags', 'author', 'ingredients',
             'is_favorited', 'is_in_shopping_cart',
             'name', 'image', 'text', 'cooking_time'
         )
@@ -129,7 +129,7 @@ class IngredientsRecipesWriteSerializer(serializers.ModelSerializer):
 
 
 class RecipesWritewSerializer(serializers.ModelSerializer):
-    ingrredients = IngredientsRecipesWriteSerializer(many=True)
+    ingredients = IngredientsRecipesWriteSerializer(many=True)
     tags = serializers.PrimaryKeyRelatedField(
         queryset=Tags.objects.all(), many=True
     )
@@ -138,7 +138,7 @@ class RecipesWritewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipes
         fields = (
-            'tags', 'ingrredients',
+            'tags', 'ingredients',
             'name', 'image', 'text', 'cooking_time'
         )
 
@@ -147,26 +147,26 @@ class RecipesWritewSerializer(serializers.ModelSerializer):
             instance, context=self.context
         ).data
 
-    def add_ingrredients(self, recipe, ingrredients):
+    def add_ingredients(self, recipe, ingredients):
         lst = []
-        for ingrredient in ingrredients:
-            current_ingrredient, status = Ingredients.objects.get_or_create(
-                id=ingrredient.get("id").id
+        for ingredient in ingredients:
+            current_ingredient, status = Ingredients.objects.get_or_create(
+                id=ingredient.get("id").id
             )
             IngredientsRecipes.objects.create(
                 recipes=recipe,
-                ingrredient=current_ingrredient,
-                amount=int(ingrredient.get("amount"))
+                ingredient=current_ingredient,
+                amount=int(ingredient.get("amount"))
             )
-            lst.append(current_ingrredient)
+            lst.append(current_ingredient)
         return lst
 
     def create(self, validated_data):
-        ingrredients = validated_data.pop('ingrredients')
+        ingredients = validated_data.pop('ingredients')
         tags = validated_data.pop('tags')
         author = self.context.get("request").user
         recipe = Recipes.objects.create(**validated_data, author=author)
-        self.add_ingrredients(recipe, ingrredients)
+        self.add_ingredients(recipe, ingredients)
         for tag in tags:
             RecipesTags.objects.create(
                 tag=tag, recipes=recipe
@@ -181,10 +181,10 @@ class RecipesWritewSerializer(serializers.ModelSerializer):
         )
         instance.image = validated_data.get('image', instance.image)
 
-        ingrredients_data = validated_data.pop('ingrredients')
+        ingredients_data = validated_data.pop('ingredients')
         IngredientsRecipes.objects.filter(recipes=instance).delete()
-        instance.ingrredients.set(
-            self.add_ingrredients(instance, ingrredients_data)
+        instance.ingredients.set(
+            self.add_ingredients(instance, ingredients_data)
         )
 
         tags_data = validated_data.pop('tags')

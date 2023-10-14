@@ -4,7 +4,7 @@ from recipes.models import Recipes
 from users.models import User
 
 
-class TagsIngridientMixin(mixins.ListModelMixin,
+class TagsIngredientMixin(mixins.ListModelMixin,
                           mixins.RetrieveModelMixin,
                           viewsets.GenericViewSet):
     pass
