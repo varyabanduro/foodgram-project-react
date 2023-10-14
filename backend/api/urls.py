@@ -19,9 +19,6 @@ subscribe_router.register('subscribe', SubscribeViewSet, basename='subscribe')
 recipes_router = FavoritesRouter()
 recipes_router.register('favorites', FavoritesViewSet)
 recipes_router.register('shopping_cart', CartViewSet)
-# (?P<recipes_id>[^/.]+)/favorite'
-# print(router.urls)
-# print(recipes_router.urls)
 
 auth_patterns = [
     path('', include('djoser.urls')),
