@@ -10,7 +10,7 @@ class Command(BaseCommand):
 
     def ImportIngredients(self):
         if Ingredients.objects.exists():
-            print('Данные для User уже загружены')
+            print('Данные для Ingredients уже загружены')
         else:
             for ingredient in DictReader(open(
                     BASE_DIR / 'static/data/ingredients.csv',
