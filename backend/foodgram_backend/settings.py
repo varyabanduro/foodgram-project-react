@@ -6,9 +6,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv('SECRET_KEY', 'secret_key')
 
-DEBUG = False
+DEBUG = os.getenv('DEBUG', 1)
 
-ALLOWED_HOSTS = ['158.160.73.78']
+ALLOWED_HOSTS = [os.getenv('ALLOWED_HOSTS', '127.0.0.1')]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -69,7 +69,6 @@ DATABASES = {
         'PORT': os.getenv('DB_PORT', 5432)
     }
 }
-
 
 AUTH_PASSWORD_VALIDATORS = [
     {
