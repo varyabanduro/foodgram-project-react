@@ -43,13 +43,13 @@ class Command(BaseCommand):
             USER_ADMIN_EMAIL = os.getenv('USER_ADMIN_EMAIL', 0)
             if (USER_ADMIN_EMAIL and USER_ADMIN_PASSWORD):
                 result = {
-                        'email': USER_ADMIN_EMAIL,
-                        'username': 'admin',
-                        'first_name': 'admin',
-                        'last_name': 'admin',
-                        'password': USER_ADMIN_PASSWORD,
-                        'is_staff': 1,
-                        'is_superuser': 1
+                    'email': USER_ADMIN_EMAIL,
+                    'username': 'admin',
+                    'first_name': 'admin',
+                    'last_name': 'admin',
+                    'password': USER_ADMIN_PASSWORD,
+                    'is_staff': 1,
+                    'is_superuser': 1
                 }
                 User.objects.create_user(**result)
                 print('Admin добавлен')
