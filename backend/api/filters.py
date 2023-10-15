@@ -1,5 +1,6 @@
 from django_filters.rest_framework import (CharFilter, FilterSet,
-                                           NumberFilter, BooleanFilter)
+                                           NumberFilter, BooleanFilter,
+                                           AllValuesMultipleFilter)
 from recipes.models import Recipes, Ingredients
 
 
@@ -7,7 +8,9 @@ class RecipesFilter(FilterSet):
     is_favorited = BooleanFilter(method='filter_is_favorited')
     is_in_shopping_cart = BooleanFilter(method='filter_is_in_shopping_cart')
     author = NumberFilter(field_name='author')
-    tags = CharFilter(field_name='tags__slug', lookup_expr='icontains')
+    tags = AllValuesMultipleFilter(
+        field_name='tags__slug', lookup_expr='icontains'
+    )
 
     class Meta:
         model = Recipes
