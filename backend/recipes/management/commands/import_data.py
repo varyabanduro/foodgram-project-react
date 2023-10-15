@@ -40,7 +40,7 @@ class Command(BaseCommand):
             print('Данные для User уже загружены')
         else:
             USER_ADMIN_PASSWORD = os.getenv('USER_ADMIN_PASSWORD', 0)
-            USER_ADMIN_EMAIL = os.getenv('USER_USER_ADMIN_EMAILADMIN', 0)
+            USER_ADMIN_EMAIL = os.getenv('USER_ADMIN_EMAIL', 0)
             if (USER_ADMIN_EMAIL and USER_ADMIN_PASSWORD):
                 result = {
                         'email': USER_ADMIN_EMAIL,
