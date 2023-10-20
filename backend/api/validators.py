@@ -10,3 +10,13 @@ def unique_constraint(self):
         raise serializers.ValidationError(
             {"error": 'Запись уже существует'}
         )
+
+
+def check_pk(self):
+    pk = self.kwargs.get(self.lookup_field)
+    try:
+        pk = int(pk)
+    except ValueError:
+        raise serializers.ValidationError(
+            {"error": 'id должно быть числом'}
+        )

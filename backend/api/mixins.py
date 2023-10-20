@@ -1,4 +1,4 @@
-from rest_framework import viewsets, generics, serializers, mixins
+from rest_framework import viewsets, generics, mixins
 from django.shortcuts import get_object_or_404
 from recipes.models import Recipes
 from users.models import User
@@ -26,12 +26,7 @@ class ModelMixinSet(generics.CreateAPIView,
 
     def perform_create(self, serializer):
         pk = self.kwargs.get(self.lookup_field)
-        try:
-            attr = {
-                self.lookup_field: get_object_or_404(self.get_model(), pk=pk)
-            }
-        except ValueError:
-            raise serializers.ValidationError(
-                {"error": 'id должно быть числом'}
-            )
+        attr = {
+            self.lookup_field: get_object_or_404(self.get_model(), pk=pk)
+        }
         serializer.save(user=self.request.user, **attr)

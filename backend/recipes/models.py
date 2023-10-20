@@ -1,12 +1,18 @@
 from django.db import models
 from users.models import User
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, RegexValidator
 
 
 class Tags(models.Model):
     name = models.CharField(
         max_length=32,
         unique=True,
+        validators=(
+            RegexValidator(
+                regex=r'^[[:alpha:]]+\Z',
+                message='Тег состоит только из букв',
+            ),
+        ),
         verbose_name='Тэг',
         help_text='Название тега'
     )
@@ -15,7 +21,7 @@ class Tags(models.Model):
         verbose_name='Цвет',
         help_text='Цвет тега'
     )
-    slug = models.CharField(
+    slug = models.SlugField(
         max_length=32,
     )
 
@@ -81,6 +87,12 @@ class Recipes(models.Model):
     )
     name = models.CharField(
         max_length=200,
+        validators=(
+            RegexValidator(
+                regex=r'^[[:alpha:]]+\Z',
+                message='Название рецепта состоит только из букв',
+            ),
+        ),
         verbose_name='Название',
         help_text='Название рецепта'
     )
@@ -92,8 +104,11 @@ class Recipes(models.Model):
         verbose_name='Описание',
         help_text='Описание рецепта'
     )
-    cooking_time = models.IntegerField(
+    cooking_time = models.PositiveSmallIntegerField(
         verbose_name='Время приготовления (в минутах)',
+        validators=(
+            MinValueValidator(1),
+        ),
     )
     tags = models.ManyToManyField(
         Tags,
@@ -153,10 +168,10 @@ class IngredientsRecipes(models.Model):
         on_delete=models.CASCADE,
         verbose_name='Ингридиенты'
     )
-    amount = models.IntegerField(
+    amount = models.PositiveSmallIntegerField(
         blank=False,
         validators=(
-            MinValueValidator(0),
+            MinValueValidator(1),
         ),
         verbose_name='Количество',
     )

@@ -9,7 +9,7 @@ from users.serializers import (SubscriptionsUserSerializer,
                                CustomUserSerializer,
                                SubscriptionsRecipesSerializer)
 from django.core.files.base import ContentFile
-from .validators import unique_constraint
+from .validators import unique_constraint, check_pk
 
 
 class Hex2NameColor(serializers.Field):
@@ -38,7 +38,9 @@ class Base64ImageField(serializers.ImageField):
 class IngredientsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ingredients
-        fields = ('id', 'name', 'measurement_unit')
+        fields = (
+            'id', 'name', 'measurement_unit'
+        )
 
 
 class TagsSerializer(serializers.ModelSerializer):
@@ -46,16 +48,14 @@ class TagsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Tags
-        fields = ('id', 'name', 'color', 'slug')
+        fields = (
+            'id', 'name', 'color', 'slug'
+        )
 
 
 class SubscribeSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(read_only=True)
     subscribing = serializers.PrimaryKeyRelatedField(read_only=True)
-
-    class Meta:
-        model = Subscriptions
-        fields = ('user', 'subscribing')
 
     def to_representation(self, instance):
         return SubscriptionsUserSerializer(
@@ -72,6 +72,10 @@ class SubscribeSerializer(serializers.ModelSerializer):
             )
         return attrs
 
+    class Meta:
+        model = Subscriptions
+        fields = ('user', 'subscribing')
+
 
 class IngredientsRecipesSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField(source="ingredient.id")
@@ -82,7 +86,9 @@ class IngredientsRecipesSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = IngredientsRecipes
-        fields = ('id', 'name', 'measurement_unit', 'amount')
+        fields = (
+            'id', 'name', 'measurement_unit', 'amount'
+        )
 
 
 class RecipesListSerializer(serializers.ModelSerializer):
@@ -94,6 +100,30 @@ class RecipesListSerializer(serializers.ModelSerializer):
         many=True, source='ingredient_recipes'
     )
 
+    def get_is_favorited(self, obj):
+        user = self.context.get('request').user
+        # if not user.is_authenticated:
+        #     return False
+        # return obj.favorites_recipes.filter(
+        #     # user=user, recipes=obj.id
+        #     user=user,
+        # ).exists()
+        return user.is_authenticated and obj.favorites_recipes.filter(
+            user=user,
+        ).exists()
+
+    def get_is_in_shopping_cart(self, obj):
+        user = self.context.get('request').user
+        # if not user.is_authenticated:
+        #     return False
+        # return obj.recipes_cart.filter(
+        #     # user=user, recipes=obj.id
+        #     user=user,
+        # ).exists()
+        return user.is_authenticated and obj.recipes_cart.filter(
+            user=user,
+        ).exists()
+
     class Meta:
         model = Recipes
         fields = (
@@ -102,22 +132,6 @@ class RecipesListSerializer(serializers.ModelSerializer):
             'name', 'image', 'text', 'cooking_time'
         )
 
-    def get_is_favorited(self, obj):
-        user = self.context.get('request').user
-        if not user.is_authenticated:
-            return False
-        return obj.favorites_recipes.filter(
-            user=user, recipes=obj.id
-        ).exists()
-
-    def get_is_in_shopping_cart(self, obj):
-        user = self.context.get('request').user
-        if not user.is_authenticated:
-            return False
-        return obj.recipes_cart.filter(
-            user=user, recipes=obj.id
-        ).exists()
-
 
 class IngredientsRecipesWriteSerializer(serializers.ModelSerializer):
     id = serializers.PrimaryKeyRelatedField(queryset=Ingredients.objects.all())
@@ -125,7 +139,9 @@ class IngredientsRecipesWriteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = IngredientsRecipes
-        fields = ('id', 'amount')
+        fields = (
+            'id', 'amount'
+        )
 
 
 class RecipesWritewSerializer(serializers.ModelSerializer):
@@ -135,19 +151,12 @@ class RecipesWritewSerializer(serializers.ModelSerializer):
     )
     image = Base64ImageField(required=False, allow_null=True)
 
-    class Meta:
-        model = Recipes
-        fields = (
-            'tags', 'ingredients',
-            'name', 'image', 'text', 'cooking_time'
-        )
-
     def to_representation(self, instance):
         return RecipesListSerializer(
             instance, context=self.context
         ).data
 
-    def add_ingredients(self, recipe, ingredients):
+    def _add_ingredients(self, recipe, ingredients):
         lst = []
         for ingredient in ingredients:
             current_ingredient, status = Ingredients.objects.get_or_create(
@@ -166,7 +175,7 @@ class RecipesWritewSerializer(serializers.ModelSerializer):
         tags = validated_data.pop('tags')
         author = self.context.get("request").user
         recipe = Recipes.objects.create(**validated_data, author=author)
-        self.add_ingredients(recipe, ingredients)
+        self._add_ingredients(recipe, ingredients)
         for tag in tags:
             RecipesTags.objects.create(
                 tag=tag, recipes=recipe
@@ -184,7 +193,7 @@ class RecipesWritewSerializer(serializers.ModelSerializer):
         ingredients_data = validated_data.pop('ingredients')
         IngredientsRecipes.objects.filter(recipes=instance).delete()
         instance.ingredients.set(
-            self.add_ingredients(instance, ingredients_data)
+            self._add_ingredients(instance, ingredients_data)
         )
 
         tags_data = validated_data.pop('tags')
@@ -196,6 +205,13 @@ class RecipesWritewSerializer(serializers.ModelSerializer):
 
         instance.save()
         return instance
+
+    class Meta:
+        model = Recipes
+        fields = (
+            'tags', 'ingredients',
+            'name', 'image', 'text', 'cooking_time'
+        )
 
 
 class FavoritesCartSerializer(serializers.ModelSerializer):
@@ -209,16 +225,21 @@ class FavoritesCartSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         unique_constraint(self)
+        check_pk(self)
         return attrs
 
 
 class FavoritesSerializer(FavoritesCartSerializer):
     class Meta:
         model = Favorites
-        fields = ('user', 'recipes')
+        fields = (
+            'user', 'recipes'
+        )
 
 
 class CartSerializer(FavoritesCartSerializer):
     class Meta:
         model = Cart
-        fields = ('user', 'recipes')
+        fields = (
+            'user', 'recipes'
+        )
