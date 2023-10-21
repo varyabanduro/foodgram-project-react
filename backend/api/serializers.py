@@ -224,8 +224,8 @@ class FavoritesCartSerializer(serializers.ModelSerializer):
         ).data
 
     def validate(self, attrs):
-        unique_constraint(self)
         check_pk(self)
+        unique_constraint(self)
         return attrs
 
 

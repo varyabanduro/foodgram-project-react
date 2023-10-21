@@ -9,7 +9,7 @@ class Tags(models.Model):
         unique=True,
         validators=(
             RegexValidator(
-                regex=r'^[[:alpha:]]+\Z',
+                regex=r'^[\w\s]+\Z',
                 message='Тег состоит только из букв',
             ),
         ),
@@ -89,7 +89,7 @@ class Recipes(models.Model):
         max_length=200,
         validators=(
             RegexValidator(
-                regex=r'^[[:alpha:]]+\Z',
+                regex=r'^[\w\s,]+\Z',
                 message='Название рецепта состоит только из букв',
             ),
         ),

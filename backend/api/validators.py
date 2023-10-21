@@ -13,7 +13,9 @@ def unique_constraint(self):
 
 
 def check_pk(self):
-    pk = self.kwargs.get(self.lookup_field)
+    kwargs = self.context.get('view').kwargs
+    lookup_field = self.context.get('view').lookup_field
+    pk = kwargs.get(lookup_field)
     try:
         pk = int(pk)
     except ValueError:
