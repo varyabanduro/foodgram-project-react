@@ -7,4 +7,4 @@ Pillow==9.0.0
 PyYAML==6.0
 webcolors==1.11.1
 fpdf2==2.7.6
-django-admin-list-filter-dropdown
+django-admin-list-filter-dropdown==1.0.3

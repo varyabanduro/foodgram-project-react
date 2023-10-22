@@ -119,7 +119,7 @@ class Recipes(models.Model):
     ingredients = models.ManyToManyField(
         Ingredients,
         through='IngredientsRecipes',
-        blank=False,
+        blank=True,
         verbose_name='Ингридиент'
     )
 
@@ -168,6 +168,10 @@ class IngredientsRecipes(models.Model):
         on_delete=models.CASCADE,
         verbose_name='Ингридиенты'
     )
+    # Как я поняла у нас это в тз, но в ингридиетах
+    # есть "по вкусу" и мне кажется было бы круто сделать,
+    # что бы в таких ингридиетах была возможность оставлять поле пустым
+    # а так у нас получается авокадо-1(по вкусу)
     amount = models.PositiveSmallIntegerField(
         blank=False,
         validators=(

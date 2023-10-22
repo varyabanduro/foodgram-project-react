@@ -11,12 +11,14 @@ from recipes.models import (
 )
 
 
+@admin.register(Tags)
 class TagsAdmin(admin.ModelAdmin):
     list_display = ('pk', 'name', 'slug')
     list_per_page = 20
     empty_value_diplay = '-пусто-'
 
 
+@admin.register(Subscriptions)
 class SubscriptionsAdmin(admin.ModelAdmin):
     list_display = ('pk', 'user', 'subscribing')
     search_fields = ('user',)
@@ -24,6 +26,7 @@ class SubscriptionsAdmin(admin.ModelAdmin):
     empty_value_display = '-пусто-'
 
 
+@admin.register(Ingredients)
 class IngredientsAdmin(admin.ModelAdmin):
     list_display = ('name', 'measurement_unit')
     search_fields = ('name',)
@@ -36,6 +39,7 @@ class IngredientsAdmin(admin.ModelAdmin):
     empty_value_diplay = '-пусто-'
 
 
+@admin.register(Favorites, Cart)
 class FavoritesCartAdmin(admin.ModelAdmin):
     list_display = ('pk', 'user', 'recipes',)
     list_per_page = 20
@@ -45,15 +49,14 @@ class FavoritesCartAdmin(admin.ModelAdmin):
 class TagsInline(admin.TabularInline):
     model = Recipes.tags.through
     extra = 1
-    can_delete = False
 
 
 class IngredientsInline(admin.TabularInline):
     model = Recipes.ingredients.through
     extra = 1
-    can_delete = False
 
 
+@admin.register(Recipes)
 class RecipesAdmin(admin.ModelAdmin):
     list_display = (
         'pk', 'name', 'author',
@@ -88,11 +91,3 @@ class RecipesAdmin(admin.ModelAdmin):
     def get_count_favorits(self, object):
         return object.favorites_recipes.count()
     get_count_favorits.short_description = 'В избранном'
-
-
-admin.site.register(Tags, TagsAdmin)
-admin.site.register(Subscriptions, SubscriptionsAdmin)
-admin.site.register(Ingredients, IngredientsAdmin)
-admin.site.register(Favorites, FavoritesCartAdmin)
-admin.site.register(Cart, FavoritesCartAdmin)
-admin.site.register(Recipes, RecipesAdmin)

@@ -8,6 +8,7 @@ import webcolors
 from users.serializers import (SubscriptionsUserSerializer,
                                CustomUserSerializer,
                                SubscriptionsRecipesSerializer)
+from django.db import transaction
 from django.core.files.base import ContentFile
 from .validators import unique_constraint, check_pk
 
@@ -102,24 +103,12 @@ class RecipesListSerializer(serializers.ModelSerializer):
 
     def get_is_favorited(self, obj):
         user = self.context.get('request').user
-        # if not user.is_authenticated:
-        #     return False
-        # return obj.favorites_recipes.filter(
-        #     # user=user, recipes=obj.id
-        #     user=user,
-        # ).exists()
         return user.is_authenticated and obj.favorites_recipes.filter(
             user=user,
         ).exists()
 
     def get_is_in_shopping_cart(self, obj):
         user = self.context.get('request').user
-        # if not user.is_authenticated:
-        #     return False
-        # return obj.recipes_cart.filter(
-        #     # user=user, recipes=obj.id
-        #     user=user,
-        # ).exists()
         return user.is_authenticated and obj.recipes_cart.filter(
             user=user,
         ).exists()
@@ -145,7 +134,7 @@ class IngredientsRecipesWriteSerializer(serializers.ModelSerializer):
 
 
 class RecipesWritewSerializer(serializers.ModelSerializer):
-    ingredients = IngredientsRecipesWriteSerializer(many=True)
+    ingredients = IngredientsRecipesWriteSerializer(many=True,)
     tags = serializers.PrimaryKeyRelatedField(
         queryset=Tags.objects.all(), many=True
     )
@@ -156,55 +145,59 @@ class RecipesWritewSerializer(serializers.ModelSerializer):
             instance, context=self.context
         ).data
 
+    def validate(self, attrs):
+        if attrs['tags'] and attrs['ingredients']:
+            return attrs
+        raise serializers.ValidationError(
+            {"error": 'Тэги и ингридиенты обязательны'}
+        )
+
     def _add_ingredients(self, recipe, ingredients):
-        lst = []
+        ingredient_recipes_list = list()
         for ingredient in ingredients:
-            current_ingredient, status = Ingredients.objects.get_or_create(
+            current_ingredient = Ingredients.objects.get(
                 id=ingredient.get("id").id
             )
-            IngredientsRecipes.objects.create(
-                recipes=recipe,
-                ingredient=current_ingredient,
-                amount=int(ingredient.get("amount"))
+            ingredient_recipes_list.append(
+                IngredientsRecipes(
+                    recipes=recipe,
+                    ingredient=current_ingredient,
+                    amount=int(ingredient.get("amount"))
+                )
             )
-            lst.append(current_ingredient)
-        return lst
+        IngredientsRecipes.objects.bulk_create(ingredient_recipes_list)
 
+    def _add_tags(self, recipe, tags):
+        objs = list()
+        for tag in tags:
+            objs.append(RecipesTags(tag=tag, recipes=recipe))
+        RecipesTags.objects.bulk_create(objs)
+
+    @transaction.atomic
     def create(self, validated_data):
+        # С одной стороны они уже прошли проверку и не быть ключа не может,
+        # с другой они могут быть пустыми и поэтому пришлось добавить валидацию
+        # что конечно работает, но через админ панель можно оставить пустыми
+        # почему-то не получается установить это на уровне модели
         ingredients = validated_data.pop('ingredients')
         tags = validated_data.pop('tags')
         author = self.context.get("request").user
         recipe = Recipes.objects.create(**validated_data, author=author)
         self._add_ingredients(recipe, ingredients)
-        for tag in tags:
-            RecipesTags.objects.create(
-                tag=tag, recipes=recipe
-            )
+        self._add_tags(recipe, tags)
         return recipe
 
+    @transaction.atomic
     def update(self, instance, validated_data):
-        instance.name = validated_data.get('name', instance.name)
-        instance.text = validated_data.get('text', instance.text)
-        instance.cooking_time = validated_data.get(
-            'cooking_time', instance.cooking_time
-        )
-        instance.image = validated_data.get('image', instance.image)
-
         ingredients_data = validated_data.pop('ingredients')
         IngredientsRecipes.objects.filter(recipes=instance).delete()
-        instance.ingredients.set(
-            self._add_ingredients(instance, ingredients_data)
-        )
+        self._add_ingredients(instance, ingredients_data)
 
-        tags_data = validated_data.pop('tags')
+        tags = validated_data.pop('tags')
         RecipesTags.objects.filter(recipes=instance).delete()
-        for tag in tags_data:
-            RecipesTags.objects.create(
-                tag=tag, recipes=instance
-            )
+        self._add_tags(instance, tags)
 
-        instance.save()
-        return instance
+        return super().update(instance, validated_data)
 
     class Meta:
         model = Recipes
