@@ -56,7 +56,7 @@ jobs:
         passphrase: ${{ secrets.SSH_PASSPHRASE }}
         script: |
           cd foodgram/infra
-          sudo docker compose pull
+          echo ${{ secrets.SUDO_PASS }} | sudo docker compose pull
           sudo docker compose down
           sudo docker compose up -d
           echo 'yes' | sudo docker compose exec backend python manage.py migrate

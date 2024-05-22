@@ -30,7 +30,7 @@ class TagsViewSet(TagsIngredientMixin):
 
 
 class RecipesViewSet(viewsets.ModelViewSet):
-    queryset = Recipes.objects.all()
+    queryset = Recipes.objects.all().order_by('-id')
     pagination_class = CustomPaginations
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipesFilter

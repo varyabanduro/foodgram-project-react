@@ -129,6 +129,7 @@ class Recipes(models.Model):
     class Meta:
         verbose_name = 'Рецепты'
         verbose_name_plural = 'Рецепты'
+        ordering = ['-id']
 
 
 class Favorites(models.Model):
