@@ -44,7 +44,9 @@ jobs:
         host: ${{ secrets.HOST }}
         username: ${{ secrets.USER }}
         key: ${{ secrets.SSH_KEY }}
-        passphrase: ${{ secrets.SSH_PASSPHRASE }}
+        proxy_host: ${{ secrets.PROXY_HOST }}
+        proxy_username: ${{ secrets.USER }}
+        proxy_key: ${{ secrets.SSH_KEY }}
         source: "infra/docker-compose.yml, infra/nginx.conf, docs/openapi-schema.yml, docs/redoc.html"
         target: "foodgram"
     - name: Executing remote ssh commands to deploy
@@ -53,10 +55,12 @@ jobs:
         host: ${{ secrets.HOST }}
         username: ${{ secrets.USER }}
         key: ${{ secrets.SSH_KEY }}
-        passphrase: ${{ secrets.SSH_PASSPHRASE }}
+        proxy_host: ${{ secrets.PROXY_HOST }}
+        proxy_username: ${{ secrets.USER }}
+        proxy_key: ${{ secrets.SSH_KEY }}
         script: |
           cd foodgram/infra
-          echo ${{ secrets.SUDO_PASS }} | sudo -S docker compose pull
+          sudo docker compose pull
           sudo docker compose down
           sudo docker compose up -d
           echo 'yes' | sudo docker compose exec backend python manage.py migrate
@@ -72,4 +76,4 @@ jobs:
       with:
         to: ${{ secrets.TELEGRAM_TO }}
         token: ${{ secrets.TELEGRAM_TOKEN }}
-        message: Деплой Kittygram выполнен успешно выполнен!
+        message: Деплой Foodgram выполнен успешно выполнен!

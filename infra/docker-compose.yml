@@ -10,11 +10,13 @@ services:
   db:
     image: postgres:13.10
     env_file: ../.env
+    restart: unless-stopped
     volumes:
       - postgres_data:/var/lib/postgresql/data
   backend:
     image: vaban/foodgram_backend
     env_file: ../.env
+    restart: unless-stopped
     depends_on:
       - db
     volumes:
@@ -27,8 +29,9 @@ services:
       - static:/app/result_build/build
   nginx:
     image: nginx:1.19.3
+    restart: unless-stopped
     ports:
-      - "8081:80"
+      - "8083:80"
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
       - static:/usr/share/nginx/html/
